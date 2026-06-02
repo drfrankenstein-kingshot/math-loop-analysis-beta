@@ -52,7 +52,7 @@ else:
         g_ratio_cav = st.slider("Garrison Cavalry TG3 %", 0.0, 1.0, 1.0)
         g_ratio_arc = st.slider("Garrison Archer TG3 %", 0.0, 1.0, 1.0)
         
-        # --- NEW: Garrison Hero Dropdowns ---
+        # --- Garrison Hero Dropdowns ---
         with st.expander("🎖️ Garrison Hero Lineup Selection"):
             st.markdown("##### 👑 Garrison Leaders (Up to 3)")
             g_lead1 = st.selectbox("Garrison Leader 1", hero_list, index=hero_list.index("Amadeus") if "Amadeus" in hero_list else 0)
@@ -98,7 +98,7 @@ else:
         a_ratio_cav = st.slider("Attacker Cavalry TG3 %", 0.0, 1.0, 1.0)
         a_ratio_arc = st.slider("Attacker Archer TG3 %", 0.0, 1.0, 1.0)
         
-        # --- NEW: Attacker Hero Dropdowns ---
+        # --- Attacker Hero Dropdowns ---
         with st.expander("🎖️ Attacker Hero Lineup Selection"):
             st.markdown("##### 👑 Rally Leaders (Up to 3)")
             a_lead1 = st.selectbox("Rally Leader 1", hero_list, index=hero_list.index("Amadeus") if "Amadeus" in hero_list else 0)
@@ -198,7 +198,7 @@ else:
             avg_surviving_array = total_surviving_array / num_runs
             avg_surviving_sum = total_surviving_sum / num_runs
             
-# --- WEB INTERFACE LAYOUT DISPLAY ---
+            # --- WEB INTERFACE LAYOUT DISPLAY ---
             st.success("Simulation Complete!")
             
             # Determine victory type based on who survived the majority of runs
@@ -207,21 +207,23 @@ else:
                 status_color = "green"
                 troop_label = "Garrison (Defender) Remaining"
                 row_labels = ["🛡️ Garrison Infantry frontline", "🐴 Garrison Cavalry flanking", "🏹 Garrison Archer backend"]
+                display_suffix = "Garrison"
             else:
                 victory_title = "🚀 ATTACKER RALLY VICTORY"
                 status_color = "red"
                 troop_label = "Attacker Rally Remaining"
                 row_labels = ["🛡️ Attacker Infantry frontline", "🐴 Attacker Cavalry flanking", "🏹 Attacker Archer backend"]
+                display_suffix = "Attacker"
             
-            # Big Bold Victory Banner
-            st.markdown(f"### <span style='color:{status_color}'>{victory_title}</span>", unsafe_allow_code=True)
+            # Render clear HTML-styled header securely
+            st.markdown("### <span style='color:" + status_color + "'>" + victory_title + "</span>", unsafe_allow_html=True)
             
             m1, m2, m3 = st.columns(3)
-            m1.metric(f"Avg Total Survivors ({'Garrison' if avg_surviving_sum > 0 else 'Attacker'})", f"{avg_surviving_sum:,.0f}")
+            m1.metric("Avg Total Survivors (" + display_suffix + ")", f"{avg_surviving_sum:,.0f}")
             m2.metric("Worst Case Scenario", f"{worst_case:,.0f}")
             m3.metric("Best Case Scenario", f"{best_case:,.0f}")
             
-            st.markdown(f"### 📊 {troop_label} Proportions")
+            st.markdown("### 📊 " + troop_label + " Proportions")
             st.table({
                 "Troop Class Type": row_labels,
                 "Average Surviving Units": [f"{avg_surviving_array[0]:,.0f}", f"{avg_surviving_array[1]:,.0f}", f"{avg_surviving_array[2]:,.0f}"]
