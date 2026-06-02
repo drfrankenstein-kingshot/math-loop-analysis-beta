@@ -198,16 +198,31 @@ else:
             avg_surviving_array = total_surviving_array / num_runs
             avg_surviving_sum = total_surviving_sum / num_runs
             
-            # --- WEB INTERFACE LAYOUT DISPLAY ---
+# --- WEB INTERFACE LAYOUT DISPLAY ---
             st.success("Simulation Complete!")
             
+            # Determine victory type based on who survived the majority of runs
+            if avg_surviving_sum > 0:
+                victory_title = "🏰 GARRISON DEFENSE VICTORY"
+                status_color = "green"
+                troop_label = "Garrison (Defender) Remaining"
+                row_labels = ["🛡️ Garrison Infantry frontline", "🐴 Garrison Cavalry flanking", "🏹 Garrison Archer backend"]
+            else:
+                victory_title = "🚀 ATTACKER RALLY VICTORY"
+                status_color = "red"
+                troop_label = "Attacker Rally Remaining"
+                row_labels = ["🛡️ Attacker Infantry frontline", "🐴 Attacker Cavalry flanking", "🏹 Attacker Archer backend"]
+            
+            # Big Bold Victory Banner
+            st.markdown(f"### <span style='color:{status_color}'>{victory_title}</span>", unsafe_allow_code=True)
+            
             m1, m2, m3 = st.columns(3)
-            m1.metric("Average Total Survivors", f"{avg_surviving_sum:,.0f}")
+            m1.metric(f"Avg Total Survivors ({'Garrison' if avg_surviving_sum > 0 else 'Attacker'})", f"{avg_surviving_sum:,.0f}")
             m2.metric("Worst Case Scenario", f"{worst_case:,.0f}")
             m3.metric("Best Case Scenario", f"{best_case:,.0f}")
             
-            st.markdown("### 📊 Troop Class Survival Proportions")
+            st.markdown(f"### 📊 {troop_label} Proportions")
             st.table({
-                "Troop Class Type": ["🛡️ Infantry frontline", "🐴 Cavalry flanking", "🏹 Archer backend"],
+                "Troop Class Type": row_labels,
                 "Average Surviving Units": [f"{avg_surviving_array[0]:,.0f}", f"{avg_surviving_array[1]:,.0f}", f"{avg_surviving_array[2]:,.0f}"]
             })
