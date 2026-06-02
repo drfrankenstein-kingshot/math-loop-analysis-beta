@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-from simulator_engine import kingshot_multirally_sim2, TroopSide
+from simulator_engine import kingshot_multirally_sim2, TroopSide, load_hero_db
 
 # =========================================================================
 # --- SECURITY GATEWAY ---
@@ -33,6 +33,9 @@ else:
         st.session_state["authenticated"] = False
         st.rerun()
 
+    # Pull all available hero names directly from your existing database
+    hero_list = sorted(list(load_hero_db().keys()))
+
     col1, col2 = st.columns(2)
     
     # -------------------------------------------------------------------------
@@ -49,7 +52,19 @@ else:
         g_ratio_cav = st.slider("Garrison Cavalry TG3 %", 0.0, 1.0, 1.0)
         g_ratio_arc = st.slider("Garrison Archer TG3 %", 0.0, 1.0, 1.0)
         
-        # --- NEW: Garrison Stat Input Matrices ---
+        # --- NEW: Garrison Hero Dropdowns ---
+        with st.expander("🎖️ Garrison Hero Lineup Selection"):
+            st.markdown("##### 👑 Garrison Leaders (Up to 3)")
+            g_lead1 = st.selectbox("Garrison Leader 1", hero_list, index=hero_list.index("Amadeus") if "Amadeus" in hero_list else 0)
+            g_lead2 = st.selectbox("Garrison Leader 2", hero_list, index=hero_list.index("Hilde") if "Hilde" in hero_list else 0)
+            g_lead3 = st.selectbox("Garrison Leader 3", hero_list, index=hero_list.index("Marlin") if "Marlin" in hero_list else 0)
+            
+            st.markdown("##### 👥 Garrison Supporters (4 Reinforcers)")
+            g_sup1 = st.selectbox("Garrison Supporter 1", hero_list, index=hero_list.index("Gordon") if "Gordon" in hero_list else 0)
+            g_sup2 = st.selectbox("Garrison Supporter 2", hero_list, index=hero_list.index("Gordon") if "Gordon" in hero_list else 0)
+            g_sup3 = st.selectbox("Garrison Supporter 3", hero_list, index=hero_list.index("Gordon") if "Gordon" in hero_list else 0)
+            g_sup4 = st.selectbox("Garrison Supporter 4", hero_list, index=hero_list.index("Gordon") if "Gordon" in hero_list else 0)
+        
         with st.expander("📊 Edit Garrison Combat Stats (12 Variables)"):
             st.markdown("##### 🛡️ Infantry Stats")
             g_inf_atk = st.number_input("Garrison Infantry Attack %", value=858.7)
@@ -83,7 +98,19 @@ else:
         a_ratio_cav = st.slider("Attacker Cavalry TG3 %", 0.0, 1.0, 1.0)
         a_ratio_arc = st.slider("Attacker Archer TG3 %", 0.0, 1.0, 1.0)
         
-        # --- NEW: Attacker Stat Input Matrices ---
+        # --- NEW: Attacker Hero Dropdowns ---
+        with st.expander("🎖️ Attacker Hero Lineup Selection"):
+            st.markdown("##### 👑 Rally Leaders (Up to 3)")
+            a_lead1 = st.selectbox("Rally Leader 1", hero_list, index=hero_list.index("Amadeus") if "Amadeus" in hero_list else 0)
+            a_lead2 = st.selectbox("Rally Leader 2", hero_list, index=hero_list.index("Marlin") if "Marlin" in hero_list else 0)
+            a_lead3 = st.selectbox("Rally Leader 3", hero_list, index=hero_list.index("Petra") if "Petra" in hero_list else 0)
+            
+            st.markdown("##### 👥 Rally Joiners (4 Supporters)")
+            a_sup1 = st.selectbox("Rally Joiner 1", hero_list, index=hero_list.index("Chenko") if "Chenko" in hero_list else 0)
+            a_sup2 = st.selectbox("Rally Joiner 2", hero_list, index=hero_list.index("Chenko") if "Chenko" in hero_list else 0)
+            a_sup3 = st.selectbox("Rally Joiner 3", hero_list, index=hero_list.index("Chenko") if "Chenko" in hero_list else 0)
+            a_sup4 = st.selectbox("Rally Joiner 4", hero_list, index=hero_list.index("Chenko") if "Chenko" in hero_list else 0)
+        
         with st.expander("📊 Edit Attacker Combat Stats (12 Variables)"):
             st.markdown("##### 🛡️ Infantry Stats")
             a_inf_atk = st.number_input("Attacker Infantry Attack %", value=1031.8)
@@ -118,11 +145,16 @@ else:
                 [g_cav_atk, g_cav_def, g_cav_let, g_cav_hp],
                 [g_arc_atk, g_arc_def, g_arc_let, g_arc_hp]
             ]
+            
+            # Form strings dynamically from the Garrison Select Boxes
+            g_leaders = [g_lead1, g_lead2, g_lead3]
+            g_supporters = [g_sup1, g_sup2, g_sup3, g_sup4]
+            
             garrison_setup = TroopSide(
                 troops=[g_inf, g_cav, g_arc], 
                 stats=g_stats, 
-                leader_heroes=["Amadeus", "Hilde", "Marlin"],
-                supporter_heroes=["Gordon", "Gordon", "Gordon", "Gordon"],
+                leader_heroes=g_leaders,
+                supporter_heroes=g_supporters,
                 tg3_ratio=[g_ratio_inf, g_ratio_cav, g_ratio_arc]
             )
             
@@ -131,11 +163,16 @@ else:
                 [a_cav_atk, a_cav_def, a_cav_let, a_cav_hp],
                 [a_arc_atk, a_arc_def, a_arc_let, a_arc_hp]
             ]
+            
+            # Form strings dynamically from the Attacker Select Boxes
+            a_leaders = [a_lead1, a_lead2, a_lead3]
+            a_supporters = [a_sup1, a_sup2, a_sup3, a_sup4]
+            
             wave1_setup = TroopSide(
                 troops=[a_inf, a_cav, a_arc],
                 stats=w1_stats,
-                leader_heroes=["Amadeus", "Marlin", "Petra"],
-                supporter_heroes=["Chenko", "Chenko", "Chenko", "Chenko"],
+                leader_heroes=a_leaders,
+                supporter_heroes=a_supporters,
                 tg3_ratio=[a_ratio_inf, a_ratio_cav, a_ratio_arc]
             )
             
