@@ -146,7 +146,6 @@ else:
                 [g_arc_atk, g_arc_def, g_arc_let, g_arc_hp]
             ]
             
-            # Form strings dynamically from the Garrison Select Boxes
             g_leaders = [g_lead1, g_lead2, g_lead3]
             g_supporters = [g_sup1, g_sup2, g_sup3, g_sup4]
             
@@ -164,7 +163,6 @@ else:
                 [a_arc_atk, a_arc_def, a_arc_let, a_arc_hp]
             ]
             
-            # Form strings dynamically from the Attacker Select Boxes
             a_leaders = [a_lead1, a_lead2, a_lead3]
             a_supporters = [a_sup1, a_sup2, a_sup3, a_sup4]
             
@@ -178,53 +176,79 @@ else:
             
             rally_waves_input = [wave1_setup]
             
-            # Monte Carlo Processing Loop
-            total_surviving_sum = 0
-            total_surviving_array = np.zeros(3)
-            worst_case = float('inf')
-            best_case = 0.0
+            # --- MONTE CARLO PROCESSING WITH TRACKING FOR BOTH SIDES ---
+            d_surviving_sum = 0
+            d_surviving_array = np.zeros(3)
+            d_worst = float('inf')
+            d_best = 0.0
+            
+            a_surviving_sum = 0
+            a_surviving_array = np.zeros(3)
+            a_worst = float('inf')
+            a_best = 0.0
             
             for _ in range(int(num_runs)):
                 final_garrison, logs = kingshot_multirally_sim2(rally_waves_input, garrison_setup)
-                run_survivors = final_garrison.troops
-                run_total = np.sum(run_survivors)
                 
-                total_surviving_array += run_survivors
-                total_surviving_sum += run_total
+                # Defender tracking
+                d_run_survivors = final_garrison.troops
+                d_run_total = np.sum(d_run_survivors)
+                d_surviving_array += d_run_survivors
+                d_surviving_sum += d_run_total
+                if d_run_total < d_worst: d_worst = d_run_total
+                if d_run_total > d_best: d_best = d_run_total
                 
-                if run_total < worst_case: worst_case = run_total
-                if run_total > best_case: best_case = run_total
+                # Attacker tracking (grabs the remaining troops from the last wave processed)
+                a_run_survivors = logs[-1]['attacker_surviving']
+                a_run_total = np.sum(a_run_survivors)
+                a_surviving_array += a_run_survivors
+                a_surviving_sum += a_run_total
+                if a_run_total < a_worst: a_worst = a_run_total
+                if a_run_total > a_best: a_best = a_run_total
                 
-            avg_surviving_array = total_surviving_array / num_runs
-            avg_surviving_sum = total_surviving_sum / num_runs
+            # Compute averages
+            d_avg_array = d_surviving_array / num_runs
+            d_avg_sum = d_surviving_sum / num_runs
+            
+            a_avg_array = a_surviving_array / num_runs
+            a_avg_sum = a_surviving_sum / num_runs
             
             # --- WEB INTERFACE LAYOUT DISPLAY ---
             st.success("Simulation Complete!")
             
-            # Determine victory type based on who survived the majority of runs
-            if avg_surviving_sum > 0:
-                victory_title = "🏰 GARRISON DEFENSE VICTORY"
+            # Base logic to figure out overall match leaning
+            if d_avg_sum > a_avg_sum:
+                victory_title = "🏰 GARRISON DEFENSE LEANING"
                 status_color = "green"
-                troop_label = "Garrison (Defender) Remaining"
-                row_labels = ["🛡️ Garrison Infantry frontline", "🐴 Garrison Cavalry flanking", "🏹 Garrison Archer backend"]
-                display_suffix = "Garrison"
             else:
-                victory_title = "🚀 ATTACKER RALLY VICTORY"
+                victory_title = "🚀 ATTACKER RALLY LEANING"
                 status_color = "red"
-                troop_label = "Attacker Rally Remaining"
-                row_labels = ["🛡️ Attacker Infantry frontline", "🐴 Attacker Cavalry flanking", "🏹 Attacker Archer backend"]
-                display_suffix = "Attacker"
-            
-            # Render clear HTML-styled header securely
+                
             st.markdown("### <span style='color:" + status_color + "'>" + victory_title + "</span>", unsafe_allow_html=True)
             
-            m1, m2, m3 = st.columns(3)
-            m1.metric("Avg Total Survivors (" + display_suffix + ")", f"{avg_surviving_sum:,.0f}")
-            m2.metric("Worst Case Scenario", f"{worst_case:,.0f}")
-            m3.metric("Best Case Scenario", f"{best_case:,.0f}")
+            # Side-by-Side Metric Spread
+            out_col1, out_col2 = st.columns(2)
             
-            st.markdown("### 📊 " + troop_label + " Proportions")
-            st.table({
-                "Troop Class Type": row_labels,
-                "Average Surviving Units": [f"{avg_surviving_array[0]:,.0f}", f"{avg_surviving_array[1]:,.0f}", f"{avg_surviving_array[2]:,.0f}"]
-            })
+            with out_col1:
+                st.markdown("#### 🏰 Defender Spread Metrics")
+                st.metric("Avg Garrison Survivors", f"{d_avg_sum:,.0f}")
+                st.metric("Garrison Worst Case", f"{d_worst:,.0f}")
+                st.metric("Garrison Best Case", f"{d_best:,.0f}")
+                
+                st.markdown("##### 📊 Avg Remaining Garrison Breakdown")
+                st.table({
+                    "Troop Class": ["🛡️ Infantry frontline", "🐴 Cavalry flanking", "🏹 Archer backend"],
+                    "Surviving": [f"{d_avg_array[0]:,.0f}", f"{d_avg_array[1]:,.0f}", f"{d_avg_array[2]:,.0f}"]
+                })
+                
+            with out_col2:
+                st.markdown("#### 🚀 Attacker Spread Metrics")
+                st.metric("Avg Attacker Survivors", f"{a_avg_sum:,.0f}")
+                st.metric("Attacker Worst Case", f"{a_worst:,.0f}")
+                st.metric("Attacker Best Case", f"{a_best:,.0f}")
+                
+                st.markdown("##### 📊 Avg Remaining Attacker Breakdown")
+                st.table({
+                    "Troop Class": ["🛡️ Infantry frontline", "🐴 Cavalry flanking", "🏹 Archer backend"],
+                    "Surviving": [f"{a_avg_array[0]:,.0f}", f"{a_avg_array[1]:,.0f}", f"{a_avg_array[2]:,.0f}"]
+                })
