@@ -26,8 +26,8 @@ else:
     # =========================================================================
     # --- SIMULATOR APPLICATION (UNLOCKED) ---
     # =========================================================================
-    st.title("⚔️ Kingshot Multi-Rally & Garrison Simulator")
-    st.subheader("State of Survival Hidden Core Architecture Engine")
+    st.title("⚔️ Kingshot Single Rally & Garrison Simulator")
+    
     
     if st.sidebar.button("Lock Application"):
         st.session_state["authenticated"] = False
@@ -47,7 +47,7 @@ else:
         g_cav = st.number_input("Garrison Cavalry Count", value=174733)
         g_arc = st.number_input("Garrison Archer Count", value=322047)
         
-        st.markdown("**Garrison Tier-10 (TG3) Purity Ratios**")
+        st.markdown("**Garrison Tier-10 (TG3) Ratios**")
         g_ratio_inf = st.slider("Garrison Infantry TG3 %", 0.0, 1.0, 1.0)
         g_ratio_cav = st.slider("Garrison Cavalry TG3 %", 0.0, 1.0, 1.0)
         g_ratio_arc = st.slider("Garrison Archer TG3 %", 0.0, 1.0, 1.0)
